@@ -15,10 +15,10 @@
  */
 package com.example.android.sunshine.ui.list;
 
-import android.arch.lifecycle.LifecycleActivity;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
@@ -34,14 +34,15 @@ import java.util.Date;
 /**
  * Displays a list of the next 14 days of forecasts
  */
-public class MainActivity extends LifecycleActivity implements
+public class MainActivity extends AppCompatActivity implements
         ForecastAdapter.ForecastAdapterOnItemClickHandler {
 
-    private ForecastAdapter mForecastAdapter;
-    private RecyclerView mRecyclerView;
+    private ForecastAdapter forecastAdapter;
+    private RecyclerView recyclerView;
+    private ProgressBar loadingIndicator;
+    private MainActivityViewModel viewModel;
+
     private int mPosition = RecyclerView.NO_POSITION;
-    private ProgressBar mLoadingIndicator;
-    private MainActivityViewModel mViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,7 +53,7 @@ public class MainActivity extends LifecycleActivity implements
          * Using findViewById, we get a reference to our RecyclerView from xml. This allows us to
          * do things like set the adapter of the RecyclerView and toggle the visibility.
          */
-        mRecyclerView = findViewById(R.id.recyclerview_forecast);
+        recyclerView = findViewById(R.id.recyclerview_forecast);
 
         /*
          * The ProgressBar that will indicate to the user that we are loading data. It will be
@@ -61,7 +62,7 @@ public class MainActivity extends LifecycleActivity implements
          * Please note: This so called "ProgressBar" isn't a bar by default. It is more of a
          * circle. We didn't make the rules (or the names of Views), we just follow them.
          */
-        mLoadingIndicator = findViewById(R.id.pb_loading_indicator);
+        loadingIndicator = findViewById(R.id.pb_loading_indicator);
 
         /*
          * A LinearLayoutManager is responsible for measuring and positioning item views within a
@@ -81,13 +82,13 @@ public class MainActivity extends LifecycleActivity implements
                 new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
 
         /* setLayoutManager associates the LayoutManager we created above with our RecyclerView */
-        mRecyclerView.setLayoutManager(layoutManager);
+        recyclerView.setLayoutManager(layoutManager);
 
         /*
          * Use this setting to improve performance if you know that changes in content do not
          * change the child layout size in the RecyclerView
          */
-        mRecyclerView.setHasFixedSize(true);
+        recyclerView.setHasFixedSize(true);
 
         /*
          * The ForecastAdapter is responsible for linking our weather data with the Views that
@@ -99,17 +100,17 @@ public class MainActivity extends LifecycleActivity implements
          * MainActivity implements the ForecastAdapter ForecastOnClickHandler interface, "this"
          * is also an instance of that type of handler.
          */
-        mForecastAdapter = new ForecastAdapter(this, this);
+        forecastAdapter = new ForecastAdapter(this, this);
 
         /* Setting the adapter attaches it to the RecyclerView in our layout. */
-        mRecyclerView.setAdapter(mForecastAdapter);
+        recyclerView.setAdapter(forecastAdapter);
         MainViewModelFactory factory = InjectorUtils.provideMainActivityViewModelFactory(this.getApplicationContext());
-        mViewModel = ViewModelProviders.of(this, factory).get(MainActivityViewModel.class);
+        viewModel = ViewModelProviders.of(this, factory).get(MainActivityViewModel.class);
 
-        mViewModel.getForecast().observe(this, weatherEntries -> {
-            mForecastAdapter.swapForecast(weatherEntries);
+        viewModel.getForecast().observe(this, weatherEntries -> {
+            forecastAdapter.swapForecast(weatherEntries);
             if (mPosition == RecyclerView.NO_POSITION) mPosition = 0;
-            mRecyclerView.smoothScrollToPosition(mPosition);
+            recyclerView.smoothScrollToPosition(mPosition);
 
             // Show the weather list or the loading screen based on whether the forecast data exists
             // and is loaded
@@ -140,9 +141,9 @@ public class MainActivity extends LifecycleActivity implements
      */
     private void showWeatherDataView() {
         // First, hide the loading indicator
-        mLoadingIndicator.setVisibility(View.INVISIBLE);
+        loadingIndicator.setVisibility(View.INVISIBLE);
         // Finally, make sure the weather data is visible
-        mRecyclerView.setVisibility(View.VISIBLE);
+        recyclerView.setVisibility(View.VISIBLE);
     }
 
     /**
@@ -154,8 +155,8 @@ public class MainActivity extends LifecycleActivity implements
      */
     private void showLoading() {
         // Then, hide the weather data
-        mRecyclerView.setVisibility(View.INVISIBLE);
+        recyclerView.setVisibility(View.INVISIBLE);
         // Finally, show the loading indicator
-        mLoadingIndicator.setVisibility(View.VISIBLE);
+        loadingIndicator.setVisibility(View.VISIBLE);
     }
 }
