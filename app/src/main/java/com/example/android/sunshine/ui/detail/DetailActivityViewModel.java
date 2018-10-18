@@ -17,7 +17,6 @@
 package com.example.android.sunshine.ui.detail;
 
 import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.MediatorLiveData;
 import android.arch.lifecycle.ViewModel;
 
 import com.example.android.sunshine.data.SunshineRepository;
@@ -41,14 +40,6 @@ class DetailActivityViewModel extends ViewModel {
         mRepository = repository;
         mDate = date;
         mWeather = mRepository.getWeatherByDate(mDate);
-
-
-        MediatorLiveData<List<User>> usersLiveData =
-                new MediatorLiveData<>();
-        usersLiveData.addSource(usersFromDatabase, newUserList ->
-                usersLiveData.setValue(value));
-        usersLiveData.addSource(usersFromNetwork, newUserList ->
-                usersLiveData.setValue(value));
     }
 
     public LiveData<WeatherEntry> getWeather() {
